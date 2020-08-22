@@ -1,4 +1,19 @@
-# DiamondBlackjack
+Chips work with exs money in your wallet.
+
+if you dont enough have money you can't bet.
+
+
+this modefied version of rubbertoe98's DiamondBlackjack
+
+all thanks to rubbertoe98.
+
+Orignal resouce [https://github.com/rubbertoe98/DiamondBlackjack](https://github.com/rubbertoe98/DiamondBlackjack)
+
+He is word down blow if you want setup you can read it all.
+
+
+
+DiamondBlackjack
 Hello everyone! I've spent the past 2 months working on blackjack in a style as similar to GTA:O as possible and I've decided that all servers should enjoy this so I'm releasing it!
  
 [![N|Solid](https://i.gyazo.com/8d6087d72268cf1aebe5c8fec2218769.png)]()
