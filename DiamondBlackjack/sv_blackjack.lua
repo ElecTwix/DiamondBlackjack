@@ -1,22 +1,43 @@
 local blackjackTables = {
     --[chairId] == false or source if taken
+    [0] = false,
+    [1] = false,
+    [2] = false,
+    [3] = false,
+    [4] = false,
+    [5] = false,
+    [6] = false,
+    [7] = false,
+    [8] = false,
+    [9] = false,
+    [10] = false,
+    [11] = false,
+    [12] = false,
+    [13] = false,
+    [14] = false,
+    [15] = false,
 }
-
-for i=0,127,1 do
-    blackjackTables[i] = false
-end
 
 local blackjackGameInProgress = {}
 local blackjackGameData = {}
 
+ESX = nil
+TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 function tryTakeChips(source,amount)
-    --returns true if taken chips succesfully
-    --returns false if doesn't have enough chips
-    return true
+	local xPlayer = ESX.GetPlayerFromId(source)
+	local item = xPlayer.getMoney()
+		if item >= amount then
+			xPlayer.removeMoney(amount)
+			return true
+		else 
+			TriggerClientEvent('esx:showNotification', source, 'You dont have enough tokens')
+			return false --you dont actually need to return false, since default is false but anw. I like this way
+		end
 end
-
 function giveChips(source,amount)
-    --gives amount in chips to source
+    local xPlayer = ESX.GetPlayerFromId(source)
+    moneygive = amount * 1.8
+	xPlayer.addMoney(amount)
 end
 
 AddEventHandler('playerDropped', function (reason)
@@ -26,6 +47,21 @@ AddEventHandler('playerDropped', function (reason)
             blackjackTables[k] = false
         end
     end
+end)
+
+RegisterCommand("debugtableserver",function()
+    print("blackjackTables")
+    print("===============")
+    print(dump(blackjackTables))
+    print("blackjackGameData")
+    print("===============")
+    print(dump(blackjackGameData))
+end)
+
+RegisterCommand("debugcarddata",function()
+    print("carddata")
+    print("===============")
+    print(dump(blackjackGameData[1024]))
 end)
 
 RegisterNetEvent("Blackjack:requestBlackjackTableData")
@@ -115,7 +151,7 @@ AddEventHandler("Blackjack:standBlackjack",function(gameId,nextCardCount)
     blackjackGameData[gameId][source][2][nextCardCount] = false
 end)
 
-for i=0,31,1 do
+for i=0,3,1 do
     Citizen.CreateThread(function()
         math.randomseed(os.clock()*100000000000)
         while true do  --blackjack game management thread
@@ -129,7 +165,7 @@ for i=0,31,1 do
             local chairIdFinal = (i*4)+3
             for chairID=chairIdInitial,chairIdFinal do
                 --print("checking chairID[" .. tostring(chairID) .. "] = " .. tostring(blackjackTables[chairID])) 
-                if blackjackTables[chairID] ~= false then
+                if blackjackTables[chairID] ~= false then   
                     table.insert(players_ready,blackjackTables[chairID])
                     game_ready = true
                 end
@@ -219,13 +255,13 @@ for i=0,31,1 do
                                         blackjackGameData[gameId][source][2] = {}
                                         --print("initialize card count = 1")
                                         while nextCardCount >= 1 do
-                                            --print("while card count >= 1 waiting for a response... cardCount is: " .. tostring(nextCardCount))
+                                            print("while card count >= 1 waiting for a response... cardCount is: " .. tostring(nextCardCount))
                                             secondsWaited = 0
-                                            --print("error debug #1")
-                                            --print("gameId",gameId)
-                                            --print(dump(blackjackGameData[gameId]))
-                                            --print("=======")
-                                            while blackjackGameData[gameId][source][2][nextCardCount] == nil and secondsWaited < 20 do 
+                                            print("error debug #1")
+                                            print("gameId",gameId)
+                                            print(dump(blackjackGameData[gameId]))
+                                            print("=======")
+                                            while blackjackGameData[gameId][source][2][nextCardCount] == nil and secondsWaited < 10 do 
                                                 Wait(100)
                                                 secondsWaited = secondsWaited + 0.1
                                                 ----print("response to stand or hit is still false")
@@ -323,14 +359,18 @@ for i=0,31,1 do
                                         end
                                     end
                                 end
-                                while dealerHand < 17 do 
-                                    local randomCard = math.random(1,52)
-                                    --print("randomDealerCard: " .. tostring(randomCard))
-                                    table.insert(blackjackGameData[gameId]["dealer"]["cardData"], randomCard)
-                                    TriggerClientEvent("Blackjack:singleDealerCard",-1,gameId,randomCard,nextCardCount,getCurrentHand(gameId,"dealer"),tableId)
-                                    Wait(2800)
-                                    nextCardCount = nextCardCount + 1
-                                    dealerHand = getCurrentHand(gameId,"dealer")
+                                if highestPlayerHand < dealerHand then
+                                    --print("ending game early, dealer has higher than all players")
+                                else
+                                    while dealerHand < 17 do 
+                                        local randomCard = math.random(1,52)
+                                        --print("randomDealerCard: " .. tostring(randomCard))
+                                        table.insert(blackjackGameData[gameId]["dealer"]["cardData"], randomCard)
+                                        TriggerClientEvent("Blackjack:singleDealerCard",-1,gameId,randomCard,nextCardCount,getCurrentHand(gameId,"dealer"),tableId)
+                                        Wait(2800)
+                                        nextCardCount = nextCardCount + 1
+                                        dealerHand = getCurrentHand(gameId,"dealer")
+                                    end
                                 end
                             end
                         end
@@ -614,18 +654,3 @@ function dump(o)
        return tostring(o)
     end
  end
-
--- RegisterCommand("debugtableserver",function()
---     print("blackjackTables")
---     print("===============")
---     print(dump(blackjackTables))
---     print("blackjackGameData")
---     print("===============")
---     print(dump(blackjackGameData))
--- end)
-
--- RegisterCommand("debugcarddata",function()
---     print("carddata")
---     print("===============")
---     print(dump(blackjackGameData[1024]))
--- end)
